@@ -1,8 +1,14 @@
 import flet as ft
+from database import Database
 
 def main(page: ft.Page):
     page.title = "Приложение учёта расходов"
     page.data = 0.0
+
+    # создаем экземпляр класса Database
+    db = Database("db.sqlite3")
+    # создаем таблицы
+    db.create_tables()
 
     def add_expense(e):
         expense = f"{name_input.value}, сумма: {amount_input.value} сом"
