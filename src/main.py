@@ -5,35 +5,68 @@ def main(page: ft.Page):
     page.title = "Приложение учёта расходов"
     page.data = 0.0
 
-    # создаем экземпляр класса Database
     db = Database("db.sqlite3")
-    # создаем таблицы
     db.create_tables()
 
+    title = ft.Text(value="Учёт расходов", size=33)
+    name_input = ft.TextField(label="Название расхода")
+    amount_input = ft.TextField(label="Сумма расхода")
+    add_button = ft.ElevatedButton("Добавить")
+    total_text = ft.Text(value=f"Общая сумма: {page.data} сом", size=28)
+    expense_list_area = ft.Column()
+    form_area = ft.Row(controls=[name_input, amount_input, add_button])
+
     def add_expense(e):
-        expense = f"{name_input.value}, сумма: {amount_input.value} сом"
-        print(expense)
-        expense_list.controls.append(ft.Text(value=expense, size=30))
-        page.data += float(amount_input.value)
+        name = name_input.value.strip()
+        amount = float(amount_input.value.strip())
+
+        if not name:
+            return
+
+        db.add_expense(name=name, amount=amount)
+
+        expense_list_area.controls.clear()
+        page.data = 0.0
+
+        expenses = db.all_expenses()
+        for exp in expenses:
+            expense_list_area.controls.append(
+                ft.Row(
+                    controls=[
+                        ft.Text(value=f"Расход: {exp[1]}", size=30),
+                        ft.Text(value=f"Сумма: {exp[2]} сом", size=30),
+                    ]
+                )
+            )
+            page.data += exp[2]
+
         name_input.value = ""
         amount_input.value = ""
         total_text.value = f"Общая сумма: {page.data} сом"
         page.update()
 
-    title = ft.Text(value="Учёт расходов", size=33)
-    name_input = ft.TextField(label="Название расхода")
-    amount_input = ft.TextField(label="Сумма расхода")
-    add_button = ft.ElevatedButton("Добавить", on_click=add_expense)
-    total_text = ft.Text(value=f"Общая сумма: {page.data} сом", size=28)
-    expense_list = ft.Column()
+    add_button.on_click = add_expense
 
     page.add(
         title,
-        name_input,
-        amount_input,
-        add_button,
+        form_area,
         total_text,
-        expense_list
+        expense_list_area
     )
 
-ft.app(main)
+    expenses = db.all_expenses()
+    for exp in expenses:
+        expense_list_area.controls.append(
+            ft.Row(
+                controls=[
+                    ft.Text(value=f"Расход: {exp[1]}", size=30),
+                    ft.Text(value=f"Сумма: {exp[2]} сом", size=30),
+                ]
+            )
+        )
+        page.data += exp[2]
+
+    total_text.value = f"Общая сумма: {page.data} сом"
+    page.update()
+
+ft.app(target=main)
