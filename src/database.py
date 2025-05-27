@@ -1,5 +1,6 @@
 import sqlite3
 
+
 class Database:
     def __init__(self, path):
         self.path = path
@@ -14,6 +15,18 @@ class Database:
                 )
             """)
 
+    def count_expenses(self):
+        with sqlite3.connect(self.path) as conn:
+            cursor = conn.cursor()
+            result = cursor.execute("SELECT COUNT(*) FROM expenses")
+            return result.fetchone()[0]
+
+    def all_expenses(self):
+        with sqlite3.connect(self.path) as conn:
+            cursor = conn.cursor()
+            result = cursor.execute("SELECT * FROM expenses")
+            return result.fetchall()
+
     def add_expense(self, name: str, amount: float):
         with sqlite3.connect(self.path) as conn:
             conn.execute(
@@ -22,8 +35,7 @@ class Database:
             )
             conn.commit()
 
-    def all_expenses(self):
+    def delete_expense(self, expense_id: int):
         with sqlite3.connect(self.path) as conn:
-            cursor = conn.cursor()
-            result = cursor.execute("SELECT * FROM expenses")
-            return result.fetchall()
+            conn.execute("DELETE FROM expenses WHERE id = ?", (expense_id,))
+            conn.commit()
